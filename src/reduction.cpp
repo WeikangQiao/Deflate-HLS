@@ -135,20 +135,3 @@ void min_reduction(uint16 input[VEC], uint16 *value, uint16 *index) {
   }
   *value = value_out; *index = index_out;
 }
-
-/*
-// Min with min index
-void min_reduction(uint16 input[VEC], uint16 *value, uint16 *index) {
-  int i;
-#if VEC==8
-  min_reduction_8(input, value, index);
-#endif
-}
-// Max with min index
-void max_reduction(uint16 input[VEC], uint16 *value, uint16 *index) {
-  int i;
-#if VEC==8
-  max_reduction_8(input, value, index);
-#endif
-}
-*/
