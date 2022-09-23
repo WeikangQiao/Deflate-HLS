@@ -948,34 +948,6 @@ void export_data(stream<vec_2t> &data, stream<int> &size, uint512 *out_buf,
   }
 }
 
-void no_comp(int in_size, stream<vec_t> &literals,
-     stream<vec_2t> &data, stream<int> &size) {
-  int vec_batch_count = DIV_CEIL(in_size, VEC);
-  int i;
-  vec_2t buf;
-  for (i=0; i<vec_batch_count; i++) {
-#pragma HLS pipeline
-    if (literals.empty()) {
-      i--;
-      continue;
-    }
-    vec_t literals_read;
-    literals.read(literals_read);
-    int j = i%2;
-    buf(VEC*8*(j+1)-1, VEC*8*j) = literals_read;
-    if (j == 1) {
-      data.write(buf);
-      size.write(-1);
-    }
-  }
-  if (vec_batch_count % 2 == 1) {
-    data.write(buf);
-    size.write(-1);
-  }
-  data.write(0);
-  size.write(in_size);
-}
-
 extern "C" {
 void deflate(uint512 *in_buf, int in_size,
                 uint512 *out_buf, int *out_size) {
