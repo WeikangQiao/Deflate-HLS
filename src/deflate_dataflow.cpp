@@ -229,31 +229,6 @@ uint16 calc_match_len(vec_t line_in, vec_t record_in) {
   return min_i;
 }
 
-void mock_hash_match(stream<vec_t> &data_window, int in_size,
-    stream<vec_t> &literals,
-    stream<vec_2t> &len_raw, stream<vec_2t> &dist_raw) {
-  int i, j;
-  uint8 char_in[VEC];
-  uint16 short_out[VEC];
-  int vec_batch_count = DIV_CEIL(in_size, VEC);
-  for (i = 0; i < vec_batch_count; i++) {
-#pragma HLS PIPELINE
-    vec_t literals_read;
-    if (data_window.empty()) {
-      i--;
-      continue;
-    }
-    data_window.read(literals_read);
-    vec_t_to_chars(char_in, literals_read);
-    for (j = 0; j < VEC; j++) {
-      short_out[j] = char_in[j];
-    }
-    len_raw.write(uint16_to_vec_2t(short_out));
-    dist_raw.write(0);
-    literals.write(literals_read);
-  }
-}
-
 void gather_match_results(vec_t match_candidates[HASH_TABLE_BANKS],
     uint32 match_positions_c[HASH_TABLE_BANKS],
     uint8 match_valid_c[HASH_TABLE_BANKS],
