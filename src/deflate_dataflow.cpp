@@ -229,48 +229,6 @@ uint16 calc_match_len(vec_t line_in, vec_t record_in) {
   return min_i;
 }
 
-void gather_match_results(vec_t match_candidates[HASH_TABLE_BANKS],
-    uint32 match_positions_c[HASH_TABLE_BANKS],
-    uint8 match_valid_c[HASH_TABLE_BANKS],
-    uint16 bank_num1[VEC], vec_t match_results[VEC],
-    uint32 match_positions[VEC], uint8 match_valid[VEC]) {
-  // Gather match results from correct banks.
-  // Now match_result[i][j] is the potential match for string current[j] in
-  // dictionaty i.
-  int j,k;
-  vec_t match_results_regs[HASH_TABLE_BANKS][VEC];
-#pragma HLS ARRAY_PARTITION variable=match_results_regs complete
-  uint32 match_positions_regs[HASH_TABLE_BANKS][VEC];
-#pragma HLS ARRAY_PARTITION variable=match_positions_regs complete
-  uint8 match_valid_regs[HASH_TABLE_BANKS][VEC];
-#pragma HLS ARRAY_PARTITION variable=match_valid_regs complete
-
-  for (k = 0; k < HASH_TABLE_BANKS; k++) {
-    for (j=0; j<VEC; j++) {
-      if (bank_num1[j] == k) {
-        match_results_regs[k][j] = match_candidates[k];
-        match_positions_regs[k][j] = match_positions_c[k];
-        match_valid_regs[k][j] = match_valid_c[k];
-      } else {
-        if (k != 0) {
-          match_results_regs[k][j] = match_results_regs[k-1][j];
-          match_positions_regs[k][j] = match_positions_regs[k-1][j];
-          match_valid_regs[k][j] = match_valid_regs[k-1][j];
-        } else {
-          match_results_regs[k][j] = 0;
-          match_positions_regs[k][j] = 0;
-          match_valid_regs[k][j] = 0;
-        }
-      }
-    }
-  }
-  for (j=0; j<VEC; j++) {
-    match_results[j] = match_results_regs[HASH_TABLE_BANKS-1][j];
-    match_positions[j] = match_positions_regs[HASH_TABLE_BANKS-1][j];
-    match_valid[j] = match_valid_regs[HASH_TABLE_BANKS-1][j];
-  }
-}
-
 void hash_match_p1(stream<vec_t> &data_window, int in_size,
     stream<vec_2t> &current_window_p,
     stream<vec_2t> &bank_num1_p,
