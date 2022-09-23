@@ -583,14 +583,7 @@ void match_selection(stream<vec_t> &literals, stream<vec_2t> &len_raw,
     } else {
       head_match_pos = max_reach - VEC;
     }
-/*
-    cout << "i: " << i*VEC << " HEAD=" << old_head_match_pos << " max_reach="
-         << max_reach << " max_reach_index=" << max_reach_index << endl;
-    for (j=0; j<VEC; j++) {
-      cout << "  (L,D): " << larray[j] << " " << darray[j]
-           << " -- " << hex << literals_vec[j] << dec << endl;
-    }
-*/
+    
     // Perform tail match trimming if overlapping with head.
     // First is the special case of demotion. In this case the last
     // (L D) must have D=0.
@@ -653,41 +646,10 @@ void match_selection(stream<vec_t> &literals, stream<vec_2t> &len_raw,
         }
       }
     }
-/*
-    for (j=0; j<VEC; j++) {
-      cout << "  *(L,D): " << larray[j] << " " << darray[j]
-           << " -- " << ldvalid[j] << endl;
-    }
-*/
+
     len.write(uint16_to_vec_2t(larray));
     dist.write(uint16_to_vec_2t(darray));
     valid.write(chars_to_vec_t(ldvalid));
-  }
-}
-
-void mock_lz77(stream<vec_t> &literals, stream<vec_2t> &len,
-    stream<vec_2t> &dist, stream<vec_t> &valid, int in_size) {
-  int i, j;
-  uint8 char_in[VEC];
-  uint16 short_out[VEC];
-  uint8 valid_out[VEC];
-  int vec_batch_count = DIV_CEIL(in_size, VEC);
-  for (i = 0; i < vec_batch_count; i++) {
-#pragma HLS PIPELINE
-    vec_t literals_read;
-    if (literals.empty()) {
-      i--;
-      continue;
-    }
-    literals.read(literals_read);
-    vec_t_to_chars(char_in, literals_read);
-    for (j = 0; j < VEC; j++) {
-      short_out[j] = char_in[j];
-      valid_out[j] = 1;
-    }
-    len.write(uint16_to_vec_2t(short_out));
-    dist.write(0);
-    valid.write(chars_to_vec_t(valid_out));
   }
 }
 
@@ -757,8 +719,6 @@ void parallel_huffman_encode(stream<vec_2t> &len, stream<vec_2t> &dist,
     }
 
     counter += total_len_out;
-//    cout << "Total len: " << counter << "; ("
-//         << DIV_CEIL(counter, 8) << ")" << endl;
 
     vec_8t hcode8_out, hlen8_out;
     for (j = 0; j < VEC; j++) {
@@ -964,27 +924,23 @@ void export_data(stream<vec_2t> &data, stream<int> &size, uint512 *out_buf,
         if (out_size_local != -1) {
           if (out_size_local % (DEPTH*64) != 0) {
             copy_local_buf(out_buf, buf2, buf-1);
-            //memcpy((void*)&out_buf[(buf-1)*128], buf2, 128*64);
           }
           *out_size = out_size_local;
           break;
         } else {
           out_size_local = fill_buf(data, size, buf1);
           copy_local_buf(out_buf, buf2, buf-1);
-          //memcpy((void*)&out_buf[(buf-1)*128], buf2, 128*64);
         }
       }
     } else {
         if (out_size_local != -1) {
           if (out_size_local % (DEPTH*64) != 0) {
-            //memcpy((void*)&out_buf[(buf-1)*128], buf1, 128*64);
             copy_local_buf(out_buf, buf1, buf-1);
           }
           *out_size = out_size_local;
           break;
         } else {
           out_size_local = fill_buf(data, size, buf2);
-          //memcpy((void*)&out_buf[(buf-1)*128], buf1, 128*64);
           copy_local_buf(out_buf, buf1, buf-1);
         }
     }
